@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[26]:
+# In[7]:
 
 
 import os
@@ -36,13 +36,14 @@ from nltk.stem import *
 from nltk.corpus import wordnet
 from scipy.stats import uniform
 from scipy.stats import randint
+from spellchecker import SpellChecker #need to install for some computers
 
-
-vectorizer = CountVectorizer()
+vectorizer = TfidfVectorizer()
 
 corpus_train = pd.read_csv("reddit_train.csv",usecols=['comments','subreddits'],delimiter=',')
 corpus_test = pd.read_csv("reddit_test.csv",usecols=['comments'],delimiter=',')
 english_words = set(nltk.corpus.words.words()) # important for cleaning non-english tokens
+spell = SpellChecker()
 
 
 # a helper function to process one comment
@@ -69,6 +70,7 @@ def preprocess_text(text):
     text = re.sub(r"\=", " = ", text)
     text = re.sub(r"'", " ", text)
     text = re.sub(r"^https?:\/\/.*[\r\n]*","", text)
+    text = re.sub(r'[^a-zA-Z0-9\s]', ' ',text)
     text = text.split()
     
     # lemmatization
@@ -83,6 +85,7 @@ def preprocess_text(text):
     
     # clean all non-English words, numbers, and other weirdos, stopwords
     for x in text:
+        # x = spell.correction(x)
         if x.isalpha() and x not in stops and x in english_words:
             text_final.append(x)
     
@@ -111,12 +114,78 @@ def preprocess_testing():
     
 
 
-# # In[27]:
+# In[8]:
 
 
-# x,y = preprocess()
-# print(x.shape)
-# y2 = preprocess_testing()
-# print(y2.shape)
+x,y = preprocess()
+print(x.shape)
+y2 = preprocess_testing()
+print(y2.shape)
 
+
+# In[175]:
+
+
+print(vectorizer.get_feature_names())
+
+
+# In[152]:
+
+
+print(vectorizer.get_feature_names())
+
+
+# In[11]:
+
+
+vectorizer = CountVectorizer()
+
+corpus = [ 'This is a sentence',
+           'Another sentence is here',
+           'Wait for another sentence',
+           'The sentence is coming',
+           'The sentence has come'
+         ]
+
+x = vectorizer.fit_transform(corpus)
+print(pd.DataFrame(x.A, columns=vectorizer.get_feature_names()).to_string())
+
+
+# In[13]:
+
+
+print(x.A)
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+#######################Stats memo##########################
+No. of tokens: training set / test set
+
+No operation: 62853 / 41462
+    
+spelling-correction: 
+    
+remove stopwords: 62721 / 41331
+remove non-English: 20713 / 16111
+remove non-Englsih/remove stopwords: 20587 / 15986
+    
+lemma/remove non-English: 21125 / 16518
+stem/remove non-English: 10462 / 8352
+
+    
+lemma/remove non-English/remove stopwords: 21002 / 16396
+stem/remove non-English/remove stopwords: 10359 / 8250
+
+lemma/stem/remove non-English/remove stopwords: 10323 / 8236
+
+
+    
 
