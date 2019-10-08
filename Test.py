@@ -15,14 +15,14 @@ from sklearn.model_selection import train_test_split, KFold
 def model_validate(model, X, y, splits=5, shuff=True):
     model_name = type(model).__name__
     
-# #     Held-out validation
-#     X_train,X_test,Y_train,Y_test=train_test_split(X,y,test_size=0.2)
-#     model.fit(X_train, Y_train)
-#     held_out_result = model.predict(X_test)
-#     target_names = np.unique(y)
+#     Held-out validation
+    X_train,X_test,Y_train,Y_test=train_test_split(X,y,test_size=0.2)
+    model.fit(X_train, Y_train)
+    held_out_result = model.predict(X_test)
+    target_names = np.unique(y)
     
-#     print("Result of held-out validation on ", model_name)
-#     print(metrics.classification_report(Y_test, held_out_result, target_names=target_names))
+    print("Result of held-out validation on ", model_name)
+    print(metrics.classification_report(Y_test, held_out_result, target_names=target_names))
     
 #     K-fold cross validation
     kf = KFold(n_splits=5, shuffle=shuff)
