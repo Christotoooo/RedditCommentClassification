@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[128]:
+
+
 import os
 import re
 import sys
@@ -35,51 +41,46 @@ from sklearn.preprocessing import normalize
 from sklearn.feature_selection import chi2
 from scipy.stats import uniform
 from scipy.stats import randint
-from spellchecker import SpellChecker #need to install for some computers
+#from spellchecker import SpellChecker #need to install for some computers
 import random
-from Test import * 
+#from Test import * 
+from sklearn.utils import shuffle
+from sklearn.preprocessing import MaxAbsScaler
+
+
+
+stops = ["a", "about", "above", "across", "after", "afterwards",         "again", "all", "almost", "alone", "along", "already", "also",         "although", "always", "am", "among", "amongst", "amoungst", "amount", "an", "and",         "another", "any", "anyhow", "anyone", "anything", "anyway", "anywhere", "are", "as",         "at", "be", "became", "because", "become","becomes", "becoming", "been", "before",          "behind", "being", "beside", "besides", "between", "beyond", "both", "but", "by","can",         'cannot', "cant", "could", "couldnt", "de", "describe", "do", "done", "each", "eg",'either', "else", "enough", "etc", "even", "ever", "every", "everyone", "everything","everywhere", "except", "few", "find","for","found", "four", "from", "further", "get","give", "go", "had", "has", "hasnt", "have", "he", "hence", "her", "here", "hereafter","hereby", "herein", "hereupon", "hers", "herself", "him", "himself", "his", "how","however", "i", "ie", "if", "in", "indeed", "is", "it", "its", "itself", "keep", "least","less", "ltd", "made", "many", "may", "me", "meanwhile", "might", "mine", "more", "moreover","most", "mostly", "much", "must", "my", "myself", "name", "namely", "neither", "never",          "nevertheless", "next","no", "nobody", "none", "noone", "nor", "not", "nothing", "now","nowhere", "of", "off", "often", "on", "once", "one", "only", "onto", "or", "other",          "others", "otherwise", "our", "ours", "ourselves", "out", "over", "own", "part","perhaps","please", "put", "rather", "re", "same", "see", "seem", "seemed", "seeming", "seems", "she","should","since", "sincere","so", "some", "somehow", "someone", "something", "sometime","sometimes", "somewhere", "still", "such", "take","than", "that", "the", "their", "them",          "themselves", "then", "thence", "there", "thereafter", "thereby", "therefore", "therein","thereupon", "these", "they","this", "those", "though", "through", "throughout","thru", "thus", "to", "together", "too", "toward", "towards","under", "until", "up", "upon", "us",         "very", "was", "we", "well", "were", "what", "whatever", "when",         "whence", "whenever", "where", "whereafter", "whereas", "whereby",         "wherein", "whereupon", "wherever", "whether", "which", "while",          "who", "whoever", "whom", "whose", "why", "will", "with",         "within", "without", "would", "yet", "you", "your", "yours", "yourself", "yourselves"]
+
 
 
 feature_names = []
 
-vectorizer = TfidfVectorizer(ngram_range=(1,1),stop_words='english',norm='l2',sublinear_tf=False)
-#vectorizer = CountVectorizer(ngram_range=(1,1),stop_words='english',binary=True)
+vectorizer = TfidfVectorizer(ngram_range=(1,1),stop_words='english',norm='l2',max_df = 0.995,min_df=2,sublinear_tf=False)
+#vectorizer = CountVectorizer(ngram_range=(1,2),stop_words='english',binary=False)
 
 corpus_train = pd.read_csv("reddit_train.csv",usecols=['comments','subreddits'],delimiter=',',sep='\s*,\s*')
 corpus_test = pd.read_csv("reddit_train.csv",usecols=['comments','subreddits'],delimiter=',',sep='\s*,\s*')
+#corpus_test = pd.read_csv("reddit_test.csv",usecols=['comments','id'],delimiter=',',sep='\s*,\s*')
 #random.shuffle(corpus_train)
 #corpus_test = corpus_train["comments"]
 
 #corpus_test = corpus_train[60000:]
-corpus_test = corpus_train[60000:]
-corpus_train = corpus_train[:60000]
+corpus_train = shuffle(corpus_train)
+corpus_test = corpus_train[:10000]
+corpus_train = corpus_train[10000:]
 
 
 
-english_words = set(nltk.corpus.words.words()\
-                    + nltk.corpus.gutenberg.words()\
-                    + nltk.corpus.webtext.words()\
-                    + nltk.corpus.nps_chat.words()\
-                    + nltk.corpus.brown.words() + nltk.corpus.reuters.words())
+english_words = set(nltk.corpus.words.words()                    + nltk.corpus.gutenberg.words()                    + nltk.corpus.webtext.words()                    + nltk.corpus.nps_chat.words()                    + nltk.corpus.brown.words() + nltk.corpus.reuters.words())
 
 #spell = SpellChecker()
 
 # def is_english_word(x):
 #     return (spell.correction(x) in english_words)
-
-# important for cleaning non-english tokens
-#spell = SpellChecker()
-# delete_list = ["aaa" ,"bbb","ccc","ddd","eee","fff","ggg","hhh","iii","jjj","kkk","lll","mmm","nnn","ooo","ppp","qqq","rrr","sss","ttt"\
-#                ,"uuu","vvv","www","xxx","yyy","zzz"]
-
-                    
+           
 def misspell(x):
-    if "aaa" not in x and "bbb" not in x and "ccc" not in x and "ddd" not in x \
-    and "eee" not in x and "fff" not in x and "ggg" not in x and "hhh" not in x \
-    and "iii" not in x and "jjj" not in x and "kkk" not in x and "lll" not in x and "mmm" not in x and "nnn" not in x \
-    and "ooo" not in x and "ppp" not in x and "qqq" not in x and "rrr" not in x and "sss" not in x and "ttt" not in x \
-    and "uuu" not in x and "vvv" not in x and "www" not in x and "xxx" not in x and "yyy" not in x and "zzz" not in x \
-    and "aa" not in x and "zz" not in x:
+    if "aaa" not in x and "bbb" not in x and "ccc" not in x and "ddd" not in x     and "eee" not in x and "fff" not in x and "ggg" not in x and "hhh" not in x     and "iii" not in x and "jjj" not in x and "kkk" not in x and "lll" not in x and "mmm" not in x and "nnn" not in x     and "ooo" not in x and "ppp" not in x and "qqq" not in x and "rrr" not in x and "sss" not in x and "ttt" not in x     and "uuu" not in x and "vvv" not in x and "www" not in x and "xxx" not in x and "yyy" not in x and "zzz" not in x: #\
+    #and "aa" not in x and "zz" not in x:
         return True
     else:
         return False
@@ -94,7 +95,7 @@ def misspell(x):
 def preprocess_text(text): 
     text = text.lower().split()
     stops = set(stopwords.words("english"))
-#     text = [w for w in text if not w in stops and len(w) >= 3]
+    text = [w for w in text if not w in stops and len(w) >= 3]
     text = " ".join(text)
     text = re.sub(r"what's", "what is ", text)
     text = re.sub(r"\'s", " ", text)
@@ -129,7 +130,7 @@ def preprocess_text(text):
     # clean all non-English words, numbers, and other weirdos, stopwords
     for x in text:
         #x = spell.correction(x)
-        if x.isalpha() and x not in stops and len(x)<17 and len(x) > 1 and misspell(x):# and is_english_word(x):
+        if x.isalpha() and len(x)<20 and len(x) > 1 and misspell(x) and x not in stops: #and is_english_word(x):
 #             if len(x) >10:
 #                 text_final.append(PorterStemmer().stem(x))
 #             else:
@@ -164,10 +165,13 @@ def preprocess():
     data = data.sort_values("pval",axis=0)
     
     global to_delete
-    to_delete = list(data.index[15000:])     # 保留10000-15000之间最高
+    to_delete = list(data.index[15000:])     # unigram 保留10000-15000之间最高
     all_cols = np.arange(x_train.shape[1])
     cols_to_keep = np.where(np.logical_not(np.in1d(all_cols, to_delete)))[0]
     x_train = x_train[:, cols_to_keep]
+
+    scalar = MaxAbsScaler()
+    x_train = scalar.fit_transform(x_train)
     return x_train, y_train
 
 
@@ -182,11 +186,17 @@ def preprocess_testing():
     #y_train = df["subreddits"].to_numpy()
     global vectorizer
     x_train = vectorizer.transform(df["comments"])
-    
     all_cols = np.arange(x_train.shape[1])
     global to_delete
     cols_to_keep = np.where(np.logical_not(np.in1d(all_cols, to_delete)))[0]
     x_train = x_train[:, cols_to_keep]
-    
+    scalar = MaxAbsScaler()
+    x_train = scalar.fit_transform(x_train)
     return x_train
     
+
+
+# In[129]:
+
+
+x,y = preprocess()
